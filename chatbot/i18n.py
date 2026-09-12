@@ -1,3 +1,10 @@
+import os
+
+from dotenv import load_dotenv
+
+_I18N_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(os.path.dirname(_I18N_DIR), ".env"))
+
 CROP_DISPLAY = {
     "Wheat": {"en": "Wheat", "hi": "गेहूं", "mr": "गहू"},
     "Jowar": {"en": "Jowar", "hi": "ज्वार", "mr": "ज्वारी"},
@@ -139,6 +146,7 @@ _MESSAGES = {
         "UNKNOWN": "I'm not sure what you're asking. Try asking about your crop recommendation, soil, fertilizer, or yield prediction.",
         "FALLBACK": "I don't have an answer for that yet. Please ask something related to Smart Agri.",
         "OVERRIDE_PREFIX": "(Note: your current top recommendation is {chosen}, but here's the analysis for {crop} specifically.)\n\n",
+        "LLM_EXPLANATION_HEADER": "Why this recommendation",
     },
     "hi": {
         "GREETING": (
@@ -248,6 +256,7 @@ _MESSAGES = {
         "UNKNOWN": "मुझे समझ नहीं आया। फसल सिफारिश, मिट्टी, खाद या उपज के बारे में पूछें।",
         "FALLBACK": "इसका उत्तर अभी मेरे पास नहीं है। कृपया स्मार्ट एग्री से जुड़ा प्रश्न पूछें।",
         "OVERRIDE_PREFIX": "(ध्यान दें: आपकी वर्तमान शीर्ष सिफारिश {chosen} है, लेकिन यह विश्लेषण {crop} के लिए है।)\n\n",
+        "LLM_EXPLANATION_HEADER": "यह सिफारिश क्यों",
     },
     "mr": {
         "GREETING": (
@@ -357,6 +366,7 @@ _MESSAGES = {
         "UNKNOWN": "मला प्रश्न समजला नाही. पीक शिफारस, माती, खत किंवा उत्पादनाबद्दल विचारा.",
         "FALLBACK": "याचे उत्तर सध्या माझ्याकडे नाही. कृपया स्मार्ट अॅग्रीशी संबंधित प्रश्न विचारा.",
         "OVERRIDE_PREFIX": "(टीप: तुमची सध्याची सर्वोच्च शिफारस {chosen} आहे, पण हे विश्लेषण {crop} साठी आहे.)\n\n",
+        "LLM_EXPLANATION_HEADER": "ही शिफारस का",
     },
 }
 
@@ -469,3 +479,59 @@ def fert_phrase(text, lang):
     if not mapped:
         return text
     return mapped.get(lang, text)
+
+
+_LANG_NAMES = {"hi": "Hindi", "mr": "Marathi"}
+
+
+def translate_text(text, lang):
+    """
+    Translate free-form English through the i18n layer.
+
+    Known fertilizer phrases use the phrase table. Other English text
+    is sent to Groq for Hindi/Marathi. English (and failures) return
+    the original string so the UI can still show the report.
+    """
+    if not text:
+        return text
+
+    lang = (lang or "en").strip().lower()
+    if lang in ("en", "auto", ""):
+        return text
+
+    mapped = fert_phrase(text, lang)
+    if mapped != text:
+        return mapped
+
+    if lang not in _LANG_NAMES:
+        return text
+
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        return text
+
+    try:
+        from groq import Groq
+
+        client = Groq(api_key=api_key, timeout=20.0)
+        completion = client.chat.completions.create(
+            model="openai/gpt-oss-120b",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        f"Translate the user's English text into {_LANG_NAMES[lang]}. "
+                        "Keep every number, unit, crop name, and fertilizer name unchanged. "
+                        "Do not add or invent any numbers. Return only the translation."
+                    ),
+                },
+                {"role": "user", "content": text},
+            ],
+            temperature=0.1,
+            max_tokens=700,
+            reasoning_effort="low",
+        )
+        translated = (completion.choices[0].message.content or "").strip()
+        return translated or text
+    except Exception:
+        return text

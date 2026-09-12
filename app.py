@@ -3,6 +3,7 @@ Smart Agriculture Decision Support System
 Single-page dashboard: input → results in one scroll.
 """
 
+import html
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -370,11 +371,15 @@ mods = load_modules()
 
 try:
     from classifier import predict_intent
-    from response_engine import generate_response
+    from response_engine import generate_explanation, generate_response
     from context import ConversationContext
+    from i18n import msg as i18n_msg, translate_text
     CHATBOT_AVAILABLE = True
 except ImportError:
     CHATBOT_AVAILABLE = False
+    generate_explanation = None
+    translate_text = None
+    i18n_msg = None
 
 if "report" not in st.session_state:
     st.session_state.report = None
@@ -386,6 +391,12 @@ if "chat_messages" not in st.session_state:
     st.session_state.chat_messages = []
 if "chat_lang" not in st.session_state:
     st.session_state.chat_lang = "auto"
+if "llm_explanation" not in st.session_state:
+    st.session_state.llm_explanation = None
+if "llm_explanation_display" not in st.session_state:
+    st.session_state.llm_explanation_display = None
+if "llm_explanation_cache_key" not in st.session_state:
+    st.session_state.llm_explanation_cache_key = None
 
 # ── Demo/fallback helpers ────────────────────
 ALL_CROPS = ["Jowar", "Groundnut", "Cotton", "Sugarcane", "Wheat"]
@@ -651,6 +662,11 @@ if run:
         st.session_state.report = report
         st.session_state.results = results
         st.session_state.chat_messages = []
+        st.session_state.llm_explanation = (
+            generate_explanation(report) if generate_explanation else None
+        )
+        st.session_state.llm_explanation_display = None
+        st.session_state.llm_explanation_cache_key = None
         if CHATBOT_AVAILABLE:
             st.session_state.chat_context = ConversationContext(default_crop=results["top_crop"])
 
@@ -1097,6 +1113,33 @@ if st.session_state.get("results"):
             ),
         )
         st.plotly_chart(fig_c, use_container_width=True)
+
+    explanation_en = st.session_state.get("llm_explanation")
+    print(f"APP DEBUG: explanation_en={repr(explanation_en)}, translate_text={translate_text}, i18n_msg={i18n_msg}")
+    if explanation_en and translate_text and i18n_msg:
+        ui_lang = st.session_state.get("chat_lang", "en")
+        if ui_lang not in ("hi", "mr"):
+            ui_lang = "en"
+        cache_key = (explanation_en, ui_lang)
+        if st.session_state.get("llm_explanation_cache_key") != cache_key:
+            st.session_state.llm_explanation_display = translate_text(
+                explanation_en, ui_lang
+            )
+            st.session_state.llm_explanation_cache_key = cache_key
+        explanation = st.session_state.llm_explanation_display
+        if explanation:
+            st.markdown("<hr style='margin:28px 0'>", unsafe_allow_html=True)
+            with st.expander(i18n_msg(ui_lang, "LLM_EXPLANATION_HEADER"), expanded=True):
+                st.markdown(
+                    f"""
+                    <div style='background:#EEF4F0; border-left:3px solid #5F8C6A;
+                                border-radius:8px; padding:14px 16px; color:#2C2416;
+                                font-size:0.92rem; line-height:1.55; font-weight:500'>
+                        {html.escape(explanation).replace(chr(10), "<br>")}
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
 # ═══════════════════════════════════════════════
 #  CHAT ASSISTANT

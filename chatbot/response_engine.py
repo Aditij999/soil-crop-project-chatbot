@@ -1,12 +1,17 @@
+import json
 import os
 import re
 import sys
+
+from dotenv import load_dotenv
 
 # Make `modules/` importable regardless of where this file is run from.
 # chatbot/response_engine.py -> project root is one level up.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
+
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 try:
     from modules.soil_adjustment import compute_nutrient_gap, get_supported_crops
@@ -147,6 +152,84 @@ def _yield_interp_key(yield_info):
     if pred < 15000:
         return "YIELD_GOOD"
     return "YIELD_HIGH"
+
+
+def _report_facts(report):
+    """Subset of the prediction report the LLM is allowed to cite."""
+    fertilizer = report.get("fertilizer") or {}
+    return {
+        "chosen_crop": report.get("chosen_crop"),
+        "top_crop": report.get("top_crop"),
+        "top_5_crops": report.get("top_5_crops"),
+        "soil_input": report.get("soil_input"),
+        "soil_adjustment": report.get("soil_adjustment"),
+        "fertilizer": {
+            "action_needed": fertilizer.get("action_needed"),
+            "generic_recs": fertilizer.get("generic_recs"),
+            "crop_primary": fertilizer.get("crop_primary"),
+        },
+        "yield_prediction": report.get("yield_prediction"),
+    }
+
+
+def generate_explanation(report):
+    """
+    Ask Groq to explain the recommendation in 2–3 English sentences.
+
+    Returns the explanation string, or None if the API key is missing
+    or the call fails (timeout, rate limit, network error, etc.).
+    """
+    if not report:
+        return None
+
+    api_key = os.getenv("GROQ_API_KEY")
+    print(f"DEBUG: BASE_DIR={BASE_DIR}, env_path_exists={os.path.exists(os.path.join(BASE_DIR, '.env'))}, api_key_found={bool(api_key)}")
+    if not api_key:
+        return None
+
+    facts = _report_facts(report)
+    try:
+        payload = json.dumps(facts, ensure_ascii=False, default=str)
+    except (TypeError, ValueError):
+        return None
+
+    prompt = (
+        "You explain a Smart Agri crop/soil/fertilizer/yield recommendation "
+        "to a farmer in 2-3 short sentences of English.\n"
+        "ONLY reference numbers, crop names, fertilizer names, statuses, "
+        "and other values that appear in the JSON report below.\n"
+        "Do not invent, estimate, round into new figures, or add any number "
+        "that is not present in the report.\n"
+        "Do not mention tools, models, APIs, or that you are an AI.\n\n"
+        f"Report JSON:\n{payload}"
+    )
+
+    try:
+        from groq import Groq
+
+        client = Groq(api_key=api_key, timeout=20.0)
+        completion = client.chat.completions.create(
+            model="openai/gpt-oss-120b",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You write brief farmer-facing explanations. "
+                        "You may only use facts supplied in the user message."
+                    ),
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.2,
+            max_tokens=800,
+            reasoning_effort="low",
+        )
+        text = (completion.choices[0].message.content or "").strip()
+        print(f"EXPLANATION RESULT: {repr(text)}")
+        return text or None
+    except Exception as e:
+        print(f"EXPLANATION ERROR: {e}")
+        return None
 
 
 def generate_response(intent, report, user_message="", chat_context=None, lang=None):
