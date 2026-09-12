@@ -1,0 +1,131 @@
+{
+  "timestamp": "20260816_143531",
+  "soil_input": {
+    "Nitrogen": 34,
+    "Phosphorus": 39,
+    "Potassium": 21,
+    "Temperature": 22,
+    "Rainfall": 600,
+    "pH": 6.5
+  },
+  "chosen_crop": "Jowar",
+  "supported_crops": [
+    "Jowar",
+    "Groundnut",
+    "Cotton",
+    "Sugarcane",
+    "Wheat"
+  ],
+  "top_5_crops": [
+    {
+      "crop": "Jowar",
+      "probability": 0.4707
+    },
+    {
+      "crop": "Groundnut",
+      "probability": 0.3386
+    },
+    {
+      "crop": "Wheat",
+      "probability": 0.1906
+    },
+    {
+      "crop": "Cotton",
+      "probability": 0.0
+    },
+    {
+      "crop": "Sugarcane",
+      "probability": 0.0
+    }
+  ],
+  "soil_adjustment": {
+    "Nitrogen": {
+      "current": 34.0,
+      "ideal": 54.6,
+      "gap": 20.6,
+      "action": "INCREASE",
+      "status": "Low"
+    },
+    "Phosphorus": {
+      "current": 39.0,
+      "ideal": 37.0,
+      "gap": -2.0,
+      "action": "OPTIMAL",
+      "status": "Optimal"
+    },
+    "Potassium": {
+      "current": 21.0,
+      "ideal": 36.6,
+      "gap": 15.6,
+      "action": "INCREASE",
+      "status": "Low"
+    },
+    "pH": {
+      "current": 6.5,
+      "ideal": 6.8,
+      "gap": 0.3,
+      "action": "OPTIMAL",
+      "status": "Optimal"
+    }
+  },
+  "fertilizer": {
+    "gap_analysis": {
+      "Nitrogen": {
+        "current": 34.0,
+        "ideal": 54.6,
+        "gap": 20.6,
+        "action": "INCREASE",
+        "status": "Low"
+      },
+      "Phosphorus": {
+        "current": 39.0,
+        "ideal": 37.0,
+        "gap": -2.0,
+        "action": "OPTIMAL",
+        "status": "Optimal"
+      },
+      "Potassium": {
+        "current": 21.0,
+        "ideal": 36.6,
+        "gap": 15.6,
+        "action": "INCREASE",
+        "status": "Low"
+      },
+      "pH": {
+        "current": 6.5,
+        "ideal": 6.8,
+        "gap": 0.3,
+        "action": "OPTIMAL",
+        "status": "Optimal"
+      }
+    },
+    "generic_recs": [
+      {
+        "nutrient": "Nitrogen",
+        "condition": "Low",
+        "fertilizer": "Urea",
+        "npk_ratio": "46-0-0",
+        "dose_note": "Apply in 2 splits \u2014 basal + top-dress at 30 days",
+        "reason": "Urea is the most concentrated and economical N source (46% N)."
+      },
+      {
+        "nutrient": "Potassium",
+        "condition": "Low",
+        "fertilizer": "MOP (Muriate of Potash)",
+        "npk_ratio": "0-0-60",
+        "dose_note": "Apply at basal or after 30 days of sowing",
+        "reason": "MOP is the most concentrated and affordable K source (60% K\u2082O)."
+      }
+    ],
+    "crop_primary": {
+      "fertilizer": "10:26:26 NPK",
+      "note": "High P+K ratio supports Jowar's grain and stem development"
+    },
+    "combined_summary": "\u2022 [Nitrogen LOW] \u2192 Apply Urea (46-0-0). Apply in 2 splits \u2014 basal + top-dress at 30 days.\n\u2022 [Potassium LOW] \u2192 Apply MOP (Muriate of Potash) (0-0-60). Apply at basal or after 30 days of sowing.\n\n\ud83c\udf3e Primary fertilizer for Jowar: 10:26:26 NPK \u2014 High P+K ratio supports Jowar's grain and stem development",
+    "action_needed": true
+  },
+  "yield_prediction": {
+    "predicted_yield_kg_ha": 1368.8,
+    "interpretation": "\ud83d\udfe1 Moderate yield \u2014 improvement possible."
+  }
+}

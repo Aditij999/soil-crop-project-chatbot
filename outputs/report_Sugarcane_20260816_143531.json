@@ -1,0 +1,114 @@
+{
+  "timestamp": "20260816_143531",
+  "soil_input": {
+    "Nitrogen": 130,
+    "Phosphorus": 70,
+    "Potassium": 110,
+    "Temperature": 27,
+    "Rainfall": 1000,
+    "pH": 6.9
+  },
+  "chosen_crop": "Sugarcane",
+  "supported_crops": [
+    "Jowar",
+    "Groundnut",
+    "Cotton",
+    "Sugarcane",
+    "Wheat"
+  ],
+  "top_5_crops": [
+    {
+      "crop": "Sugarcane",
+      "probability": 1.0
+    },
+    {
+      "crop": "Cotton",
+      "probability": 0.0
+    },
+    {
+      "crop": "Groundnut",
+      "probability": 0.0
+    },
+    {
+      "crop": "Jowar",
+      "probability": 0.0
+    },
+    {
+      "crop": "Wheat",
+      "probability": 0.0
+    }
+  ],
+  "soil_adjustment": {
+    "Nitrogen": {
+      "current": 130.0,
+      "ideal": 131.6,
+      "gap": 1.6,
+      "action": "OPTIMAL",
+      "status": "Optimal"
+    },
+    "Phosphorus": {
+      "current": 70.0,
+      "ideal": 70.6,
+      "gap": 0.6,
+      "action": "OPTIMAL",
+      "status": "Optimal"
+    },
+    "Potassium": {
+      "current": 110.0,
+      "ideal": 114.0,
+      "gap": 4.0,
+      "action": "OPTIMAL",
+      "status": "Optimal"
+    },
+    "pH": {
+      "current": 6.9,
+      "ideal": 6.9,
+      "gap": 0.0,
+      "action": "OPTIMAL",
+      "status": "Optimal"
+    }
+  },
+  "fertilizer": {
+    "gap_analysis": {
+      "Nitrogen": {
+        "current": 130.0,
+        "ideal": 131.6,
+        "gap": 1.6,
+        "action": "OPTIMAL",
+        "status": "Optimal"
+      },
+      "Phosphorus": {
+        "current": 70.0,
+        "ideal": 70.6,
+        "gap": 0.6,
+        "action": "OPTIMAL",
+        "status": "Optimal"
+      },
+      "Potassium": {
+        "current": 110.0,
+        "ideal": 114.0,
+        "gap": 4.0,
+        "action": "OPTIMAL",
+        "status": "Optimal"
+      },
+      "pH": {
+        "current": 6.9,
+        "ideal": 6.9,
+        "gap": 0.0,
+        "action": "OPTIMAL",
+        "status": "Optimal"
+      }
+    },
+    "generic_recs": [],
+    "crop_primary": {
+      "fertilizer": "MOP",
+      "note": "Sugarcane is K-hungry; MOP is the standard choice"
+    },
+    "combined_summary": "\u2705 Soil is well-balanced for Sugarcane. No corrections needed.",
+    "action_needed": false
+  },
+  "yield_prediction": {
+    "predicted_yield_kg_ha": 65124.2,
+    "interpretation": "\ud83d\udfe2 High yield \u2014 excellent conditions (Sugarcane expected range)."
+  }
+}
